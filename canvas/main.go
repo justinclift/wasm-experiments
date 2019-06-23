@@ -69,13 +69,24 @@ func main() {
 
 	// Handle mouse
 	// doc.Call("addEventListener", "mousemove", mouseMoveEvt)
-	doc.Call("getElementById", "count").Call("addEventListener", "change", countChangeEvt)
+	// doc.Call("getElementById", "count").Call("addEventListener", "change", countChangeEvt)
 	doc.Call("getElementById", "speed").Call("addEventListener", "input", speedInputEvt)
 
 	dt.SetNDots(100)
 	dt.lines = false
 
 	<-done
+}
+
+//go:export countChange
+func countChange(intVal int) {
+	// evt := args[0]
+	// intVal, err := strconv.Atoi(evt.Get("target").Get("value").String())
+	// if err != nil {
+	// 	println("Invalid value", err)
+	// 	return
+	// }
+	dt.SetNDots(intVal)
 }
 
 //go:export moveHandler

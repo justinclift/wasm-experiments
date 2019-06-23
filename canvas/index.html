@@ -9,6 +9,10 @@
     <script>
         var wasm;
 
+        function countChange(evt) {
+            wasm.exports.countChange(evt.target.value);
+        }
+
         function moveHandler(evt) {
             // console.log(evt);
             wasm.exports.moveHandler(evt.clientX, evt.clientY);
@@ -21,6 +25,7 @@
             go.run(wasm);
 
             document.addEventListener("mousemove", moveHandler);
+            document.getElementById("count").addEventListener("change", countChange);
 
             setInterval(function() {
                 wasm.exports.renderFrame();
