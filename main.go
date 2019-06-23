@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	fs := http.FileServer(http.Dir("./html"))
+	fs := http.FileServer(http.Dir("./docs"))
 	log.Print("Serving on http://localhost:8080")
 	err := http.ListenAndServe(":8080", http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
 		if req.URL.Path == "/test.wasm" {
