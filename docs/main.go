@@ -10,12 +10,16 @@ import (
 )
 
 var (
-	width      float64
-	height     float64
-	mousePos   [2]float64
-	ctx, doc   js.Value
-	canvasEl   js.Value
-	dt         DotThing
+	width    float64
+	height   float64
+	mousePos [2]float64
+	ctx, doc js.Value
+	canvasEl js.Value
+	dt       DotThing
+
+	tmark     float64
+	markCount = 0
+	tdiffSum  float64
 )
 
 func main() {
@@ -53,8 +57,15 @@ func moveHandler(cx int, cy int) {
 }
 
 //go:export renderFrame
-func renderFrame() {
-	doc.Call("getElementById", "fps").Set("innerHTML", fmt.Sprintf("FPS: %.01f", 0.0)) // This will need updating
+func renderFrame(now float64) {
+	tdiff := now - tmark
+	tdiffSum += now - tmark
+	markCount++
+	if markCount > 10 {
+		doc.Call("getElementById", "fps").Set("innerHTML", fmt.Sprintf("FPS: %.01f", 1000/(tdiffSum/float64(markCount))))
+		tdiffSum, markCount = 0, 0
+	}
+	tmark = now
 
 	// Pool window size to handle resize
 	curBodyW := doc.Get("body").Get("clientWidth").Float()
@@ -64,7 +75,7 @@ func renderFrame() {
 		canvasEl.Set("width", width)
 		canvasEl.Set("height", height)
 	}
-	dt.Update(0.0165) // Hard coded value, just to keep things easy for the moment
+	dt.Update(tdiff / 1000)
 }
 
 // DotThing manager

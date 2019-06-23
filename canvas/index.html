@@ -17,6 +17,10 @@
             wasm.exports.moveHandler(evt.clientX, evt.clientY);
         }
 
+        function renderFrame(evt) {
+            wasm.exports.renderFrame(evt);
+        }
+
         function speedInput(evt) {
             wasm.exports.speedInput(evt.target.value);
         }
@@ -32,8 +36,8 @@
             document.getElementById("speed").addEventListener("input", speedInput);
 
             setInterval(function() {
-                wasm.exports.renderFrame(); // If we use this to instead call requestAnimationFrame, that might pass the desired timestamp to the function
-            },50);
+                window.requestAnimationFrame(renderFrame);
+            },15);
         })
 
         window.onload = function () {
