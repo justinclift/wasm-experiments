@@ -35,13 +35,13 @@ func main() {
 
 	dt = DotThing{speed: 160}
 
-	mouseMoveEvt := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		e := args[0]
-		mousePos[0] = e.Get("clientX").Float()
-		mousePos[1] = e.Get("clientY").Float()
-		return nil
-	})
-	defer mouseMoveEvt.Release()
+	// mouseMoveEvt := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+	// 	e := args[0]
+	// 	mousePos[0] = e.Get("clientX").Float()
+	// 	mousePos[1] = e.Get("clientY").Float()
+	// 	return nil
+	// })
+	// defer mouseMoveEvt.Release()
 
 	countChangeEvt := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		evt := args[0]
@@ -68,7 +68,7 @@ func main() {
 	defer speedInputEvt.Release()
 
 	// Handle mouse
-	doc.Call("addEventListener", "mousemove", mouseMoveEvt)
+	// doc.Call("addEventListener", "mousemove", mouseMoveEvt)
 	doc.Call("getElementById", "count").Call("addEventListener", "change", countChangeEvt)
 	doc.Call("getElementById", "speed").Call("addEventListener", "input", speedInputEvt)
 
@@ -76,6 +76,12 @@ func main() {
 	dt.lines = false
 
 	<-done
+}
+
+//go:export moveHandler
+func moveHandler(cx int, cy int) {
+	mousePos[0] = float64(cx)
+	mousePos[1] = float64(cy)
 }
 
 //go:export renderFrame

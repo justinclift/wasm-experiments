@@ -7,12 +7,23 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/go.min.js"></script>
     <script src="wasm_exec.js"></script>
     <script>
+        var wasm;
+
+        function moveHandler(evt) {
+            // console.log(evt);
+            wasm.exports.moveHandler(evt.clientX, evt.clientY);
+        }
+
         hljs.configure({ tabReplace: '  ' });
         const go = new Go();
         WebAssembly.instantiateStreaming(fetch('test.wasm'), go.importObject).then(res => {
-            go.run(res.instance);
+            wasm = res.instance;
+            go.run(wasm);
+
+            document.addEventListener("mousemove", moveHandler);
+
             setInterval(function() {
-                res.instance.exports.renderFrame();
+                wasm.exports.renderFrame();
             },50);
         })
 
