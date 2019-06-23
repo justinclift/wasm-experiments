@@ -3,9 +3,9 @@
 package main
 
 import (
-	"fmt"
 	"math"
 	"math/rand"
+	"strconv"
 	"syscall/js"
 )
 
@@ -62,7 +62,7 @@ func renderFrame(now float64) {
 	tdiffSum += now - tmark
 	markCount++
 	if markCount > 10 {
-		doc.Call("getElementById", "fps").Set("innerHTML", fmt.Sprintf("FPS: %.01f", 1000/(tdiffSum/float64(markCount))))
+		doc.Call("getElementById", "fps").Set("innerHTML", "FPS: "+strconv.FormatFloat(1000/(tdiffSum/float64(markCount)), 'f', 1, 64))
 		tdiffSum, markCount = 0, 0
 	}
 	tmark = now
@@ -142,12 +142,12 @@ func (dt *DotThing) Update(dtTime float64) {
 
 		ctx.Set("globalAlpha", 0.5)
 		ctx.Call("beginPath")
-		ctx.Set("fillStyle", fmt.Sprintf("#%06x", dot.color))
-		ctx.Set("strokeStyle", fmt.Sprintf("#%06x", dot.color))
+		hexCol := hexFormat(dot.color)
+		ctx.Set("fillStyle", hexCol)
+		ctx.Set("strokeStyle", hexCol)
 		ctx.Set("lineWidth", dot.size)
 		ctx.Call("arc", dot.pos[0], dot.pos[1], dot.size, 0, 2*math.Pi)
 		ctx.Call("fill")
-
 	}
 }
 
@@ -168,6 +168,21 @@ func (dt *DotThing) SetNDots(n int) {
 			size:  10,
 		}
 	}
+}
+
+// Adapted from the Go source: https://github.com/golang/go/blob/4ce6a8e89668b87dce67e2f55802903d6eb9110a/src/fmt/format.go#L248-L252
+func hexFormat(u uint32) string {
+	digits := "0123456789abcdefx"
+	buf := make([]uint8, 6)
+	i := len(buf)
+	for u >= 16 {
+		i--
+		buf[i] = digits[u&0xF]
+		u >>= 4
+	}
+	i--
+	buf[i] = digits[u]
+	return "#" + string(buf)
 }
 
 // Dot represents a dot ...
