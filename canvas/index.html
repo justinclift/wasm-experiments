@@ -14,8 +14,11 @@
         }
 
         function moveHandler(evt) {
-            // console.log(evt);
             wasm.exports.moveHandler(evt.clientX, evt.clientY);
+        }
+
+        function speedInput(evt) {
+            wasm.exports.speedInput(evt.target.value);
         }
 
         hljs.configure({ tabReplace: '  ' });
@@ -26,9 +29,10 @@
 
             document.addEventListener("mousemove", moveHandler);
             document.getElementById("count").addEventListener("change", countChange);
+            document.getElementById("speed").addEventListener("input", speedInput);
 
             setInterval(function() {
-                wasm.exports.renderFrame();
+                wasm.exports.renderFrame(); // If we use this to instead call requestAnimationFrame, that might pass the desired timestamp to the function
             },50);
         })
 

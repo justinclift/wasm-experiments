@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
-	"strconv"
 	"syscall/js"
 )
 
@@ -16,12 +15,10 @@ var (
 	mousePos   [2]float64
 	ctx, doc   js.Value
 	canvasEl   js.Value
-	lineDistSq float64 = 100 * 100
 	dt         DotThing
 )
 
 func main() {
-
 	// Init Canvas stuff
 	doc = js.Global().Get("document")
 	canvasEl = doc.Call("getElementById", "mycanvas")
@@ -31,61 +28,21 @@ func main() {
 	canvasEl.Call("setAttribute", "height", height)
 	ctx = canvasEl.Call("getContext", "2d")
 
-	done := make(chan struct{}, 0)
-
+	// Set up dot thing
 	dt = DotThing{speed: 160}
-
-	// mouseMoveEvt := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-	// 	e := args[0]
-	// 	mousePos[0] = e.Get("clientX").Float()
-	// 	mousePos[1] = e.Get("clientY").Float()
-	// 	return nil
-	// })
-	// defer mouseMoveEvt.Release()
-
-	countChangeEvt := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		evt := args[0]
-		intVal, err := strconv.Atoi(evt.Get("target").Get("value").String())
-		if err != nil {
-			println("Invalid value", err)
-			return nil
-		}
-		dt.SetNDots(intVal)
-		return nil
-	})
-	defer countChangeEvt.Release()
-
-	speedInputEvt := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		evt := args[0]
-		fval, err := strconv.ParseFloat(evt.Get("target").Get("value").String(), 64)
-		if err != nil {
-			println("Invalid value", err)
-			return nil
-		}
-		dt.speed = fval
-		return nil
-	})
-	defer speedInputEvt.Release()
-
-	// Handle mouse
-	// doc.Call("addEventListener", "mousemove", mouseMoveEvt)
-	// doc.Call("getElementById", "count").Call("addEventListener", "change", countChangeEvt)
-	doc.Call("getElementById", "speed").Call("addEventListener", "input", speedInputEvt)
-
 	dt.SetNDots(100)
 	dt.lines = false
+}
 
-	<-done
+// * Handlers for JS callback functions *
+
+//go:export speedInput
+func speedInput(fval float64) {
+	dt.speed = fval
 }
 
 //go:export countChange
 func countChange(intVal int) {
-	// evt := args[0]
-	// intVal, err := strconv.Atoi(evt.Get("target").Get("value").String())
-	// if err != nil {
-	// 	println("Invalid value", err)
-	// 	return
-	// }
 	dt.SetNDots(intVal)
 }
 
@@ -97,7 +54,7 @@ func moveHandler(cx int, cy int) {
 
 //go:export renderFrame
 func renderFrame() {
-	doc.Call("getElementById", "fps").Set("innerHTML", fmt.Sprintf("FPS: %.01f", 0.0))
+	doc.Call("getElementById", "fps").Set("innerHTML", fmt.Sprintf("FPS: %.01f", 0.0)) // This will need updating
 
 	// Pool window size to handle resize
 	curBodyW := doc.Get("body").Get("clientWidth").Float()
@@ -107,9 +64,8 @@ func renderFrame() {
 		canvasEl.Set("width", width)
 		canvasEl.Set("height", height)
 	}
-	dt.Update(0.0165)
+	dt.Update(0.0165) // Hard coded value, just to keep things easy for the moment
 }
-
 
 // DotThing manager
 type DotThing struct {
