@@ -14,15 +14,17 @@ var (
 	width      float64
 	height     float64
 	mousePos   [2]float64
-	ctx        js.Value
+	ctx, doc   js.Value
+	canvasEl   js.Value
 	lineDistSq float64 = 100 * 100
+	dt         DotThing
 )
 
 func main() {
 
 	// Init Canvas stuff
-	doc := js.Global().Get("document")
-	canvasEl := doc.Call("getElementById", "mycanvas")
+	doc = js.Global().Get("document")
+	canvasEl = doc.Call("getElementById", "mycanvas")
 	width = doc.Get("body").Get("clientWidth").Float()
 	height = doc.Get("body").Get("clientHeight").Float()
 	canvasEl.Call("setAttribute", "width", width)
@@ -31,7 +33,7 @@ func main() {
 
 	done := make(chan struct{}, 0)
 
-	dt := DotThing{speed: 160}
+	dt = DotThing{speed: 160}
 
 	mouseMoveEvt := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		e := args[0]
@@ -72,42 +74,25 @@ func main() {
 
 	dt.SetNDots(100)
 	dt.lines = false
-	var renderFrame js.Func
-	var tmark float64
-	var markCount = 0
-	var tdiffSum float64
-
-	renderFrame = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		now := args[0].Float()
-		tdiff := now - tmark
-		tdiffSum += now - tmark
-		markCount++
-		if markCount > 10 {
-			doc.Call("getElementById", "fps").Set("innerHTML", fmt.Sprintf("FPS: %.01f", 1000/(tdiffSum/float64(markCount))))
-			tdiffSum, markCount = 0, 0
-		}
-		tmark = now
-
-		// Pool window size to handle resize
-		curBodyW := doc.Get("body").Get("clientWidth").Float()
-		curBodyH := doc.Get("body").Get("clientHeight").Float()
-		if curBodyW != width || curBodyH != height {
-			width, height = curBodyW, curBodyH
-			canvasEl.Set("width", width)
-			canvasEl.Set("height", height)
-		}
-		dt.Update(tdiff / 1000)
-
-		js.Global().Call("requestAnimationFrame", renderFrame)
-		return nil
-	})
-	defer renderFrame.Release()
-
-	// Start running
-	js.Global().Call("requestAnimationFrame", renderFrame)
 
 	<-done
 }
+
+//go:export renderFrame
+func renderFrame() {
+	doc.Call("getElementById", "fps").Set("innerHTML", fmt.Sprintf("FPS: %.01f", 0.0))
+
+	// Pool window size to handle resize
+	curBodyW := doc.Get("body").Get("clientWidth").Float()
+	curBodyH := doc.Get("body").Get("clientHeight").Float()
+	if curBodyW != width || curBodyH != height {
+		width, height = curBodyW, curBodyH
+		canvasEl.Set("width", width)
+		canvasEl.Set("height", height)
+	}
+	dt.Update(0.0165)
+}
+
 
 // DotThing manager
 type DotThing struct {

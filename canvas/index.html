@@ -10,8 +10,12 @@
         hljs.configure({ tabReplace: '  ' });
         const go = new Go();
         WebAssembly.instantiateStreaming(fetch('test.wasm'), go.importObject).then(res => {
-            go.run(res.instance)
+            go.run(res.instance);
+            setInterval(function() {
+                res.instance.exports.renderFrame();
+            },50);
         })
+
         window.onload = function () {
             linkRange('count', 'count-value')
             linkRange('speed', 'speed-value')
